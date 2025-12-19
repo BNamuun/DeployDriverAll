@@ -14,8 +14,8 @@ app.use(express.json({ limit: "10mb" }))
 const PORT = process.env.PORT ? Number(process.env.PORT) : 3000
 // Python ml-service (FastAPI) runs on 8000.
 // Use 127.0.0.1 to avoid any proxy/DNS edge cases with "localhost".
-const ML_SERVICE_URL = process.env.ML_SERVICE_URL ?? "http://127.0.0.1:8000"
-
+// const ML_SERVICE_URL = process.env.ML_SERVICE_URL ?? "http://127.0.0.1:8000"
+const ML_SERVICE_URL = process.env.ML_SERVICE_URL
 // Health check
 app.get("/health", (_req: Request, res: Response) => {
   console.log("xaxaxa")
