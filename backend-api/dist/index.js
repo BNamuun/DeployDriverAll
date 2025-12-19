@@ -81,7 +81,7 @@ app.post("/api/users", (req, res) => {
     // pretend we saved a user
     res.status(201).json({ id: "u_123", email });
 });
-app.listen(PORT, () => {
+app.listen(PORT, "0.0.0.0", () => {
     console.log(`API running on http://localhost:${PORT}`);
     console.log(`Proxying ml-service at ${ML_SERVICE_URL}`);
 });
