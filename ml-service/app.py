@@ -151,6 +151,12 @@ class InferBase64Request(BaseModel):
     imgsz: int = Field(640, ge=64, le=1920)
 
 
+@app.get("/")
+def root():
+    """Root endpoint for Render health checks."""
+    return {"status": "ok", "service": "Drowsiness ML Service"}
+
+
 @app.get("/health")
 def health():
     """Lightweight health check.
