@@ -11,7 +11,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
-var _a;
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
@@ -25,7 +24,8 @@ app.use(express_1.default.json({ limit: "10mb" }));
 const PORT = process.env.PORT ? Number(process.env.PORT) : 3000;
 // Python ml-service (FastAPI) runs on 8000.
 // Use 127.0.0.1 to avoid any proxy/DNS edge cases with "localhost".
-const ML_SERVICE_URL = (_a = process.env.ML_SERVICE_URL) !== null && _a !== void 0 ? _a : "http://127.0.0.1:8000";
+// const ML_SERVICE_URL = process.env.ML_SERVICE_URL ?? "http://127.0.0.1:8000"
+const ML_SERVICE_URL = process.env.ML_SERVICE_URL;
 // Health check
 app.get("/health", (_req, res) => {
     console.log("xaxaxa");
