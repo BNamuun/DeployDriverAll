@@ -6,6 +6,7 @@ import time
 
 import cv2
 import numpy as np
+import torch
 from ultralytics import YOLO
 
 # Argument parser
@@ -56,7 +57,19 @@ if not os.path.exists(model_path):
     print("ERROR: model not found.")
     sys.exit(1)
 
+# Determine device
+if torch.backends.mps.is_available():
+    device = "mps"
+    print("Using MPS (Apple Silicon GPU)")
+elif torch.cuda.is_available():
+    device = "cuda"
+    print("Using CUDA GPU")
+else:
+    device = "cpu"
+    print("Using CPU")
+
 model = YOLO(model_path)
+model.to(device)
 labels = model.names
 
 # Determine source type
@@ -138,7 +151,7 @@ while True:
         frame = cv2.resize(frame, (resW, resH))
 
     # Run YOLO
-    results = model(frame, verbose=False)
+    results = model(frame, verbose=False, device=device)
     detections = results[0].boxes
 
     # Draw detections

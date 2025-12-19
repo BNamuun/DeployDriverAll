@@ -4,6 +4,7 @@ from typing import Any, Dict, List, Optional, Union
 import logging
 import cv2
 import numpy as np
+import torch
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
@@ -27,6 +28,7 @@ DEFAULT_MODEL_PATH = os.path.join(os.path.dirname(__file__), "my_model", "my_mod
 
 _model: Optional[YOLO] = None
 _model_path: Optional[str] = None
+_device: Optional[str] = None
 
 
 def _resolve_model_path() -> str:
@@ -53,11 +55,30 @@ def _resolve_model_path() -> str:
     raise RuntimeError(f"MODEL_PATH not found. Tried: {tried}")
 
 
+def _get_device() -> str:
+    """Determine the best device to use: MPS (Apple Silicon), CUDA, or CPU."""
+    global _device
+    if _device is None:
+        if torch.backends.mps.is_available():
+            _device = "mps"
+            logger.info("Using MPS (Apple Silicon GPU) for inference")
+        elif torch.cuda.is_available():
+            _device = "cuda"
+            logger.info("Using CUDA GPU for inference")
+        else:
+            _device = "cpu"
+            logger.info("Using CPU for inference (no GPU available)")
+    return _device
+
+
 def _get_model() -> YOLO:
     global _model, _model_path
     if _model is None:
         _model_path = _resolve_model_path()
+        device = _get_device()
         _model = YOLO(_model_path)
+        _model.to(device)
+        logger.info(f"Model loaded on device: {device}")
     return _model
 
 
@@ -166,10 +187,12 @@ def health():
     """
     try:
         model_path = _resolve_model_path()
+        device = _get_device()
         return {
             "ok": True,
             "model_path": model_path,
             "model_loaded": _model is not None,
+            "device": device,
         }
     except Exception as e:
         return {
@@ -187,7 +210,8 @@ def infer_base64(req: InferBase64Request):
     model = _get_model()
     frame = _decode_image_base64(req.image_base64)
 
-    results = model.predict(frame, conf=req.conf, imgsz=req.imgsz, verbose=False)
+    device = _get_device()
+    results = model.predict(frame, conf=req.conf, imgsz=req.imgsz, verbose=False, device=device)
     r0 = results[0]
     logger.info("ro;", r0)
 

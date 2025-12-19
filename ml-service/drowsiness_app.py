@@ -3,6 +3,7 @@ from collections import deque, defaultdict
 
 import cv2
 import numpy as np
+import torch
 from ultralytics import YOLO
 
 # -----------------------------
@@ -54,7 +55,19 @@ def now():
 # MAIN
 # --------------------------------
 def run(video_source=0, model_path="my_model/my_model.pt", save_output=True):
+    # Determine device
+    if torch.backends.mps.is_available():
+        device = "mps"
+        print("Using MPS (Apple Silicon GPU)")
+    elif torch.cuda.is_available():
+        device = "cuda"
+        print("Using CUDA GPU")
+    else:
+        device = "cpu"
+        print("Using CPU")
+    
     model = YOLO(model_path)
+    model.to(device)
 
     cap = cv2.VideoCapture(video_source)
     if not cap.isOpened():
@@ -95,7 +108,7 @@ def run(video_source=0, model_path="my_model/my_model.pt", save_output=True):
         h, w = frame.shape[:2]
 
         # YOLO inference
-        results = model.predict(frame, conf=CONF_THRES, verbose=False),[object Object],
+        results = model.predict(frame, conf=CONF_THRES, verbose=False, device=device)
 
         dets = []
         if results.boxes is not None and len(results.boxes) > 0:
